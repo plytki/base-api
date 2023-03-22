@@ -1,0 +1,4 @@
+name: base-api-plugin
+version: '${project.version}'
+main: dev.plytki.baseapi.plugin.BasePlugin
+api-version: 1.13
