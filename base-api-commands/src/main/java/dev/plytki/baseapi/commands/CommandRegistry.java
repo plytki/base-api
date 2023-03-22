@@ -44,22 +44,21 @@ public class CommandRegistry {
         }
 
         unregisterOldCommands(baseCommand, commandMap, knownCommands);
-
-        commandMap.register(plugin.getDescription().getName(), baseCommand);
+        commandMap.register(plugin.getPluginMeta().getName(), baseCommand);
         registeredCommands.add(baseCommand);
-        plugin.getLogger().log(Level.WARNING, "Successfully registered '" + baseCommand.getName() + "' command!");
+        plugin.getLogger().log(Level.INFO, "Successfully registered '" + baseCommand.getName() + "' command!");
     }
 
     public void registerAll(BaseCommand... baseCommands) throws FailedCommandRegistration {
         for (BaseCommand command : baseCommands)
             register(command);
-        plugin.getLogger().log(Level.WARNING, "Successfully registered all commands!");
+        plugin.getLogger().log(Level.INFO, "Successfully registered all commands!");
     }
 
     public void unregisterAll() throws FailedCommandRegistration {
         for (BaseCommand registeredCommand : new HashSet<>(registeredCommands))
             unregister(registeredCommand);
-        plugin.getLogger().log(Level.WARNING, "Successfully unregistered all commands!");
+        plugin.getLogger().log(Level.INFO, "Successfully unregistered all commands!");
     }
 
     private void unregister(BaseCommand baseCommand) throws FailedCommandRegistration {
@@ -84,7 +83,7 @@ public class CommandRegistry {
 
         registeredCommands.remove(baseCommand);
         if (message)
-            plugin.getLogger().log(Level.WARNING, "Successfully unregistered '" + baseCommand.getName() + "' command!");
+            plugin.getLogger().log(Level.INFO, "Successfully unregistered '" + baseCommand.getName() + "' command!");
     }
 
     private SimpleCommandMap getCommandMap() throws NoSuchFieldException, IllegalAccessException {
