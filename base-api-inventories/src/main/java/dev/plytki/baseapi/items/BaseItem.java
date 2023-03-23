@@ -20,6 +20,10 @@ public class BaseItem extends ItemStack {
         this.texture = texture;
     }
 
+    public ItemStack getItem() {
+        return super.clone();
+    }
+
     public static Builder builder(String id) {
         return new Builder(id);
     }
