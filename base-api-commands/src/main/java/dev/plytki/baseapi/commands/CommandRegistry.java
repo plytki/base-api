@@ -105,7 +105,7 @@ public class CommandRegistry {
                 .filter(command -> command.getName().equals(baseCommand.getName()))
                 .forEach(command -> command.unregister(commandMap));
 
-        knownCommands.keySet().stream()
+        new HashMap<>(knownCommands).keySet().stream()
                 .filter(s -> baseCommand.getName().equals(s) || baseCommand.getAliases().contains(s))
                 .forEach(knownCommands::remove);
     }
