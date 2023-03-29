@@ -44,7 +44,7 @@ public class CommandRegistry {
         }
 
         unregisterOldCommands(baseCommand, commandMap, knownCommands);
-        commandMap.register(plugin.getPluginMeta().getName(), baseCommand);
+        commandMap.register(plugin.getDescription().getName(), baseCommand);
         registeredCommands.add(baseCommand);
         plugin.getLogger().log(Level.INFO, "Successfully registered '" + baseCommand.getName() + "' command!");
     }
