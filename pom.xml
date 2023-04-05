@@ -16,6 +16,7 @@
         <module>base-api-plugin</module>
         <module>base-api-events</module>
         <module>base-api-commons</module>
+        <module>base-api-worlds</module>
     </modules>
 
     <properties>
