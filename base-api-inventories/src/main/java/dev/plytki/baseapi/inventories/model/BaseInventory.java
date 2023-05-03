@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -115,6 +116,25 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         }
     }
 
+    /**
+     * Handles the closing of the base inventory for a player.
+     * This method should be called when the inventory being closed is the base inventory.
+     *
+     * <p>
+     * If the base inventory is non-persistent (this.persistent == false), the method removes
+     * the player from the list of viewers and calls the registered close listeners. If there
+     * are no viewers left, the base inventory is destroyed.
+     * </p>
+     *
+     * <p>
+     * If the base inventory is persistent (this.persistent == true), the method does not perform
+     * any actions. The base inventory is not destroyed, and the close listeners are not called.
+     * The handling of closing the base inventory when persistent is handled by the
+     * handleCloseForAnyInventory method.
+     * </p>
+     *
+     * @param e The InventoryCloseEvent representing the closing of the base inventory.
+     */
     private void handleClose(InventoryCloseEvent e) {
         Player player = (Player) e.getPlayer();
         this.viewers.remove(player.getUniqueId());
@@ -530,14 +550,14 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
             handleDrag(e);
         }
 
-        @EventHandler
+        @EventHandler(priority = EventPriority.LOWEST)
         public void onInventoryClose(InventoryCloseEvent e) {
             Player player = (Player) e.getPlayer();
             if (!isInInventory(player)) return;
             handleClose(e);
         }
 
-        @EventHandler
+        @EventHandler(priority = EventPriority.MONITOR)
         public void onInventoryClosePersistent(InventoryCloseEvent e) {
             handleCloseForAnyInventory(e);
         }
