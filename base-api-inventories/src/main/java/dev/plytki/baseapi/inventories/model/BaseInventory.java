@@ -118,12 +118,35 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     private void handleClose(InventoryCloseEvent e) {
         Player player = (Player) e.getPlayer();
         this.viewers.remove(player.getUniqueId());
-        boolean isPersistent = this.persistent && (e.getReason() == InventoryCloseEvent.Reason.OPEN_NEW);
-        if (this.viewers.isEmpty() && !isPersistent) {
-            destroy();
+
+        if (!this.persistent) {
+            if (this.viewers.isEmpty()) {
+                destroy();
+            }
+            this.closeListeners.forEach(onCloseListener -> onCloseListener.accept(e));
         }
-        this.closeListeners.forEach(onCloseListener -> onCloseListener.accept(e));
     }
+
+    private void handleCloseForAnyInventory(InventoryCloseEvent e) {
+        if (this.persistent && e.getReason() != InventoryCloseEvent.Reason.OPEN_NEW && this.viewers.isEmpty()) {
+            destroy();
+            this.closeListeners.forEach(onCloseListener -> onCloseListener.accept(e));
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent e) {
+        Player player = (Player) e.getPlayer();
+        if (!isInInventory(player)) return;
+        handleClose(e);
+    }
+
+    @EventHandler
+    public void onInventoryClosePersistent(InventoryCloseEvent e) {
+        Player player = (Player) e.getPlayer();
+        handleCloseForAnyInventory(e);
+    }
+
 
     private void setupMessages() {
         this.delayMsg = "§cYou have to wait %s ms!";
@@ -512,6 +535,11 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
             Player player = (Player) e.getPlayer();
             if (!isInInventory(player)) return;
             handleClose(e);
+        }
+
+        @EventHandler
+        public void onInventoryClosePersistent(InventoryCloseEvent e) {
+            handleCloseForAnyInventory(e);
         }
 
     }
