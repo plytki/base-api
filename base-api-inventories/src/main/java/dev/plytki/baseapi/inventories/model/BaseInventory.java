@@ -142,7 +142,7 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
 
         if (!this.persistent) {
             if (this.viewers.isEmpty()) {
-                System.out.println("destroying inventory");
+                System.out.println("destroying inventory -> " + this.getClass().getSimpleName());
                 destroy();
             }
             this.closeListeners.forEach(onCloseListener -> onCloseListener.accept(e));
