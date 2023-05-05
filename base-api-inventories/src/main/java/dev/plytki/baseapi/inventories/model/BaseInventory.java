@@ -141,6 +141,7 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
 
         if (!this.persistent) {
             if (this.viewers.isEmpty()) {
+                System.out.println("destroying inventory");
                 destroy();
             }
             this.closeListeners.forEach(onCloseListener -> onCloseListener.accept(e));
@@ -550,7 +551,7 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
             handleDrag(e);
         }
 
-        @EventHandler(priority = EventPriority.LOWEST)
+        @EventHandler(priority = EventPriority.NORMAL)
         public void onInventoryClose(InventoryCloseEvent e) {
             Player player = (Player) e.getPlayer();
             if (!isInInventory(player)) return;
