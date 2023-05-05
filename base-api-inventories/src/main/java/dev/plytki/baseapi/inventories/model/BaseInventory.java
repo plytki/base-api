@@ -8,6 +8,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -485,6 +486,10 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
 
     public Set<UUID> getViewers() {
         return this.viewers;
+    }
+
+    public List<Player> getPlayerViewers() {
+        return this.viewers.stream().map(Bukkit::getOfflinePlayer).filter(OfflinePlayer::isOnline).map(OfflinePlayer::getPlayer).toList();
     }
 
     public Map<Integer, Consumer<InventoryClickEvent>> getClickSlotEvents() {
