@@ -142,7 +142,6 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
 
         if (!this.persistent) {
             if (this.viewers.isEmpty()) {
-                System.out.println("destroying inventory -> " + this.getClass().getSimpleName());
                 destroy();
             }
             this.closeListeners.forEach(onCloseListener -> onCloseListener.accept(e));
@@ -165,10 +164,8 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
 
     @EventHandler
     public void onInventoryClosePersistent(InventoryCloseEvent e) {
-        Player player = (Player) e.getPlayer();
         handleCloseForAnyInventory(e);
     }
-
 
     private void setupMessages() {
         this.delayMsg = "§cYou have to wait %s ms!";
