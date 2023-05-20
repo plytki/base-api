@@ -6,14 +6,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.World;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-@AllArgsConstructor
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Position {
 
     private double x;
