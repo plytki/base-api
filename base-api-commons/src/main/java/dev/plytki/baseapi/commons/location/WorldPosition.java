@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import lombok.NoArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+@NoArgsConstructor(force = true)
 public class WorldPosition extends Position {
 
     private final String world;
@@ -26,7 +28,7 @@ public class WorldPosition extends Position {
     }
 
     public World getWorld() {
-         return Bukkit.getWorld(this.world);
+         return this.world == null ? null : Bukkit.getWorld(this.world);
     }
 
     public static WorldPosition fromLocation(Location location) {
