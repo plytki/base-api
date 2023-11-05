@@ -452,35 +452,25 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
      * Open an instance of BossInventory to a player (The only proper way to open)
      * @param player - Player that the inventory will be opened for.
      */
-    public void open(boolean previous, HumanEntity... player) {
+    public void open(HumanEntity... player) {
         for (Runnable refreshListener : this.refreshListeners) {
             refreshListener.run();
         }
         for (HumanEntity humanEntity : player) {
-            if (!previous) {
-                humanEntity.openInventory(this.inv);
-                this.registry.trackInventory(this, humanEntity.getUniqueId());
-            } else {
-                humanEntity.closeInventory(InventoryCloseEvent.Reason.OPEN_NEW);
-                humanEntity.openInventory(this.inv);
-            }
+            humanEntity.openInventory(this.inv);
+            this.registry.trackInventory(this, humanEntity.getUniqueId());
             this.viewers.add(humanEntity.getUniqueId());
         }
     }
 
-    public void open(HumanEntity... player) {
-        open(false, player);
-    }
-
-    public Optional<BaseInventory> getPreviousInventory(UUID viewer) {
-        Deque<BaseInventory> viewerInventories = registry.getInventoryTracker().get(viewer);
-
+    public void openPreviousInventoryIfPresent(HumanEntity viewer) {
+        Deque<BaseInventory> viewerInventories = registry.getInventoryTracker().get(viewer.getUniqueId());
         if (viewerInventories != null && !viewerInventories.isEmpty()) {
             viewerInventories.pop();
-            return Optional.ofNullable(viewerInventories.poll());
+            BaseInventory poll = viewerInventories.poll();
+            if (poll != null)
+                poll.open(viewer);
         }
-
-        return Optional.empty();
     }
 
     public void close() {
