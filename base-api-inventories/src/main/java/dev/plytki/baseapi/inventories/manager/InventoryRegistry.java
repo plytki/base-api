@@ -23,6 +23,8 @@ public class InventoryRegistry implements Listener {
 
     public void trackInventory(BaseInventory baseInventory, UUID viewer) {
         Deque<BaseInventory> viewerInventories = inventoryTracker.computeIfAbsent(viewer, key -> new ArrayDeque<>());
+        if (viewerInventories.element().getClass().equals(baseInventory.getClass()))
+            return;
         viewerInventories.push(baseInventory);
     }
 
