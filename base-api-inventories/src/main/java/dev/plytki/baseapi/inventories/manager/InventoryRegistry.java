@@ -4,12 +4,13 @@ import dev.plytki.baseapi.inventories.model.BaseInventory;
 import lombok.Data;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 
 @Data
-public class InventoryRegistry {
+public class InventoryRegistry implements Listener {
 
     private final Plugin plugin;
     private final Set<BaseInventory> liveInventories = new HashSet<>();
@@ -17,6 +18,7 @@ public class InventoryRegistry {
 
     public InventoryRegistry(Plugin plugin) {
         this.plugin = plugin;
+        this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public void trackInventory(BaseInventory baseInventory, UUID viewer) {

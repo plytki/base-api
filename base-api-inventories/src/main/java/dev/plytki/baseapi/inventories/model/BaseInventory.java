@@ -151,6 +151,7 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     private void handleCloseForAnyInventory(InventoryCloseEvent e) {
         if (this.persistent && e.getReason() != InventoryCloseEvent.Reason.OPEN_NEW && this.viewers.isEmpty()) {
             destroy();
+            this.registry.getInventoryTracker().get(e.getPlayer().getUniqueId()).pop();
             this.closeListeners.forEach(onCloseListener -> onCloseListener.accept(e));
         }
     }
