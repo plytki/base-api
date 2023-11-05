@@ -6,17 +6,17 @@
 
     <groupId>dev.plytki</groupId>
     <artifactId>base-api</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>pom</packaging>
 
     <name>base-api</name>
     <modules>
-        <module>base-api-commands</module>
-        <module>base-api-inventories</module>
-        <module>base-api-plugin</module>
-        <module>base-api-events</module>
         <module>base-api-commons</module>
+        <module>base-api-inventories</module>
+        <module>base-api-commands</module>
+        <module>base-api-events</module>
         <module>base-api-worlds</module>
+        <module>base-api-plugin</module>
     </modules>
 
     <properties>

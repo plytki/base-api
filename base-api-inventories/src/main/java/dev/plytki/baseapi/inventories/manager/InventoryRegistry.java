@@ -2,19 +2,30 @@ package dev.plytki.baseapi.inventories.manager;
 
 import dev.plytki.baseapi.inventories.model.BaseInventory;
 import lombok.Data;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Data
 public class InventoryRegistry {
 
     private final Plugin plugin;
     private final Set<BaseInventory> liveInventories = new HashSet<>();
+    private final Map<UUID, Deque<BaseInventory>> inventoryTracker = new HashMap<>();
 
     public InventoryRegistry(Plugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void trackInventory(BaseInventory baseInventory, UUID viewer) {
+        Deque<BaseInventory> viewerInventories = inventoryTracker.computeIfAbsent(viewer, key -> new ArrayDeque<>());
+        viewerInventories.push(baseInventory);
+    }
+
+    public Deque<BaseInventory> getPreviousInventories(UUID viewer) {
+        return inventoryTracker.get(viewer);
     }
 
     public void addLiveInventory(BaseInventory baseInventory) {

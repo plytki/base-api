@@ -457,8 +457,21 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         }
         for (HumanEntity humanEntity : player) {
             humanEntity.openInventory(this.inv);
+            this.registry.trackInventory(this, humanEntity.getUniqueId());
             this.viewers.add(humanEntity.getUniqueId());
         }
+    }
+
+    public Optional<BaseInventory> getPreviousInventory(UUID viewer) {
+        Deque<BaseInventory> viewerInventories = registry.getInventoryTracker().get(viewer);
+
+        if (viewerInventories != null && !viewerInventories.isEmpty()) {
+            // Pop the top inventory from the stack to get the previous one
+            viewerInventories.pop();
+            return Optional.ofNullable(viewerInventories.peek());
+        }
+
+        return Optional.empty();
     }
 
     public void close() {
