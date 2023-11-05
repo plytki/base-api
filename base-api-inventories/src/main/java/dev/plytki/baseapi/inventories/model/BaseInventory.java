@@ -457,9 +457,13 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
             refreshListener.run();
         }
         for (HumanEntity humanEntity : player) {
-            humanEntity.openInventory(this.inv);
-            if (!previous)
+            if (!previous) {
+                humanEntity.openInventory(this.inv);
                 this.registry.trackInventory(this, humanEntity.getUniqueId());
+            } else {
+                humanEntity.closeInventory(InventoryCloseEvent.Reason.OPEN_NEW);
+                humanEntity.openInventory(this.inv);
+            }
             this.viewers.add(humanEntity.getUniqueId());
         }
     }
