@@ -452,22 +452,27 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
      * Open an instance of BossInventory to a player (The only proper way to open)
      * @param player - Player that the inventory will be opened for.
      */
-    public void open(HumanEntity... player) {
+    public void open(boolean previous, HumanEntity... player) {
         for (Runnable refreshListener : this.refreshListeners) {
             refreshListener.run();
         }
         for (HumanEntity humanEntity : player) {
             humanEntity.openInventory(this.inv);
-            this.registry.trackInventory(this, humanEntity.getUniqueId());
+            if (!previous)
+                this.registry.trackInventory(this, humanEntity.getUniqueId());
             this.viewers.add(humanEntity.getUniqueId());
         }
+    }
+
+    public void open(HumanEntity... player) {
+        open(false, player);
     }
 
     public Optional<BaseInventory> getPreviousInventory(UUID viewer) {
         Deque<BaseInventory> viewerInventories = registry.getInventoryTracker().get(viewer);
 
         if (viewerInventories != null && !viewerInventories.isEmpty()) {
-            // Poll the previous inventory from the top of the stack without removing it
+            viewerInventories.pop();
             return Optional.ofNullable(viewerInventories.poll());
         }
 
