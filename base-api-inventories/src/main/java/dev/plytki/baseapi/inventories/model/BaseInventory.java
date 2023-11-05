@@ -467,9 +467,8 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         Deque<BaseInventory> viewerInventories = registry.getInventoryTracker().get(viewer);
 
         if (viewerInventories != null && !viewerInventories.isEmpty()) {
-            // Pop the top inventory from the stack to get the previous one
-            viewerInventories.pop();
-            return Optional.ofNullable(viewerInventories.peek());
+            // Poll the previous inventory from the top of the stack without removing it
+            return Optional.ofNullable(viewerInventories.poll());
         }
 
         return Optional.empty();
