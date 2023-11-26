@@ -25,12 +25,19 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
-public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
+/**
+ * Represents an abstract base inventory class that provides functionality to
+ * create and manage custom inventories within a Minecraft plugin. This class
+ * is designed to handle inventory clicks, closes, and drags along with special
+ * inventory properties such as cancellation policies and click delays.
+ */
+public abstract class BaseInventory implements InventoryHolder {
 
     private final Plugin plugin;
     private final InventoryRegistry registry;
@@ -45,13 +52,13 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     private final Set<Integer> registeredPlayerSlots = new HashSet<>();
     private final Set<Consumer<InventoryCloseEvent>> closeListeners = new HashSet<>();
 
-    private Slots cancelledSlots;
-    private Slots cancelledPlayerSlots;
+    private CancellationPolicy slots;
+    private CancellationPolicy playerSlots;
     private boolean cancelDrag;
     private final Map<Long, BukkitTask> tasks = new HashMap<>();
-    private final List<Integer> blankSlots = new ArrayList<>();
 
     private final Map<UUID, Long> delayMap = new HashMap<>();
+    @Getter
     private long clickDelay = 0L;
     private boolean displayDelayMsg;
     private String delayMsg;
@@ -59,19 +66,31 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     @Setter(AccessLevel.PROTECTED)
     private boolean persistent;
 
-    public BaseInventory(InventoryRegistry inventoryRegistry, String inventoryName, int inventoryLines, Player... viewers) {
-        this.inv = Bukkit.createInventory(null, inventoryLines * 9, Component.text(inventoryName));
+    /**
+     * Constructs an instance of BaseInventory with specified parameters.
+     *
+     * @param inventoryRegistry The registry handling all inventories.
+     * @param inventoryName The name of the inventory.
+     * @param inventoryLines The size of the inventory in number of lines.
+     * @param viewers The initial viewers of the inventory.
+     */
+    public BaseInventory(InventoryRegistry inventoryRegistry, Component inventoryName, int inventoryLines, Player... viewers) {
+        this.inv = Bukkit.createInventory(null, inventoryLines * 9, inventoryName);
         this.registry = inventoryRegistry;
         this.listener = new InventoryListener();
         this.plugin = inventoryRegistry.getPlugin();
-        this.cancelledSlots = Slots.NONE;
-        this.cancelledPlayerSlots = Slots.NONE;
+        this.slots = CancellationPolicy.NONE;
+        this.playerSlots = CancellationPolicy.NONE;
         this.displayDelayMsg = true;
         setupMessages();
         registerListener();
         this.registry.addLiveInventory(this);
         this.persistent = false;
         open(viewers);
+    }
+
+    public BaseInventory(InventoryRegistry inventoryRegistry, String inventoryName, int inventoryLines, Player... viewers) {
+        this(inventoryRegistry, Component.text(inventoryName), inventoryLines, viewers);
     }
 
     private void registerListener() {
@@ -83,15 +102,15 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         this.clickDebug.forEach(consumer -> consumer.accept(e));
 
         boolean isPlayerInventory = e.getClickedInventory() instanceof PlayerInventory;
-        Slots cancelledSlots = isPlayerInventory ? this.cancelledPlayerSlots : this.cancelledSlots;
+        CancellationPolicy slotsPolicy = isPlayerInventory ? this.playerSlots : this.slots;
         Set<Integer> registeredSlots = isPlayerInventory ? this.registeredPlayerSlots : this.registeredSlots;
         Map<Integer, Consumer<InventoryClickEvent>> clickSlotEvents = isPlayerInventory ? this.playerClickEvents : this.clickEvents;
 
         if (registeredSlots.contains(e.getSlot())) {
-            if (cancelledSlots == Slots.REGISTERED || cancelledSlots == Slots.ALL) {
+            if (slotsPolicy == CancellationPolicy.REGISTERED || slotsPolicy == CancellationPolicy.ALL) {
                 e.setCancelled(true);
             }
-        } else if (cancelledSlots == Slots.UNREGISTERED || cancelledSlots == Slots.ALL) {
+        } else if (slotsPolicy == CancellationPolicy.UNREGISTERED || slotsPolicy == CancellationPolicy.ALL) {
             e.setCancelled(true);
         }
 
@@ -158,18 +177,6 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         }
     }
 
-    @EventHandler
-    public void onInventoryClose(InventoryCloseEvent e) {
-        Player player = (Player) e.getPlayer();
-        if (!isInInventory(player)) return;
-        handleClose(e);
-    }
-
-    @EventHandler
-    public void onInventoryClosePersistent(InventoryCloseEvent e) {
-        handleCloseForAnyInventory(e);
-    }
-
     private void setupMessages() {
         this.delayMsg = "§cYou have to wait %s ms!";
     }
@@ -187,7 +194,6 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         IntStream.range(0, this.inv.getSize())
                 .forEach(i -> {
                     if (isAir) {
-                        this.blankSlots.add(i);
                         this.inv.setItem(i, new ItemStack(Material.AIR));
                     } else {
                         this.inv.setItem(i, itemStack.clone());
@@ -215,10 +221,6 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         this.clickDelay = ms;
     }
 
-    public long getClickDelay() {
-        return this.clickDelay;
-    }
-
     private void setClickDelay(Player player) {
         this.delayMap.put(player.getUniqueId(), System.currentTimeMillis());
     }
@@ -239,30 +241,21 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
 
     public void registerTask(long taskID, Runnable runnable, long delay, long period) {
         cancelTask(taskID);
-        this.tasks.put(taskID, new BukkitRunnable() {
-            @Override
-            public void run() {
-                runnable.run();
-            }
-        }.runTaskTimer(this.plugin, delay, period));
+        this.tasks.put(taskID, scheduleTask(runnable, delay, period));
     }
 
     public void registerTask(Runnable runnable, long delay, long period) {
         registerTask(new Random().nextLong(), runnable, delay, period);
     }
 
-    public void registerTask(long taskID, Runnable runnable, long delay) {
-        cancelTask(taskID);
-        this.tasks.put(taskID, new BukkitRunnable() {
-            @Override
-            public void run() {
-                runnable.run();
-            }
-        }.runTaskLater(this.plugin, delay));
-    }
-
-    public void registerTask(Runnable runnable, long delay) {
-        registerTask(new Random().nextLong(), runnable, delay);
+    private BukkitTask scheduleTask(Runnable runnable, long delay, long period) {
+        return period > 0
+                ? new BukkitRunnable() {
+            public void run() { runnable.run(); }
+        }.runTaskTimer(this.plugin, delay, period)
+                : new BukkitRunnable() {
+            public void run() { runnable.run(); }
+        }.runTaskLater(this.plugin, delay);
     }
 
     public void cancelTask(long taskID) {
@@ -276,16 +269,22 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         return this.tasks.get(taskID);
     }
 
-    public void setBlank(int from, int to, ItemStack itemStack, Integer... skippedSlots) {
+    public void setItem(int[] slots, ItemStack itemStack, Integer... skippedSlots) {
         Set<Integer> skippedSlotsSet = new HashSet<>(Arrays.asList(skippedSlots));
-        boolean isAir = itemStack.getType() == Material.AIR;
+        Arrays.stream(slots)
+                .filter(i -> !skippedSlotsSet.contains(i))
+                .forEach(i -> {
+                    this.inv.setItem(i, itemStack.clone());
+                });
+    }
+
+
+    public void setItem(int from, int to, ItemStack itemStack, Integer... skippedSlots) {
+        Set<Integer> skippedSlotsSet = new HashSet<>(Arrays.asList(skippedSlots));
         IntStream.rangeClosed(from, to)
                 .filter(i -> !skippedSlotsSet.contains(i))
                 .forEach(i -> {
                     this.inv.setItem(i, itemStack.clone());
-                    if (isAir) {
-                        blankSlots.add(i);
-                    }
                 });
     }
 
@@ -295,22 +294,24 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
      * @param itemStack - The item which will be set as a blank at the slots positions.
      * @param skippedSlots - These are skipped slots that are excluded from the array.
      */
-    public void setBlank(int from, ItemStack itemStack, Integer... skippedSlots) {
-        setBlank(from, getInventory().getSize()-1, itemStack, skippedSlots);
+    public void setItem(int from, ItemStack itemStack, Integer... skippedSlots) {
+        setItem(from, getInventory().getSize()-1, itemStack, skippedSlots);
     }
 
     /**
-     * Cancel inventory slots of type Slots.
+     * Sets the cancellation policy for inventory slots.
+     *
+     * @param policy The cancellation policy to set.
      */
-    public void cancel(Slots slots) {
-        this.cancelledSlots = slots;
+    public void cancellationPolicy(CancellationPolicy policy) {
+        this.slots = policy;
     }
 
     /**
      * Cancel player inventory slots of type Slots.
      */
-    public void cancelPlayer(Slots slots) {
-        this.cancelledPlayerSlots = slots;
+    public void cancellationPolicyPlayer(CancellationPolicy policy) {
+        this.playerSlots = policy;
     }
 
     public void cancelDragItems(boolean cancel) {
@@ -331,10 +332,11 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     }
 
     /**
-     * Register slots with custom event handler.
-     * @param from - Starting slot.
-     * @param to - Ending slot.
-     * @param function - Function that will be executed.
+     * Registers a click event handler for a range of inventory slots.
+     *
+     * @param from     The starting slot index to register the event for.
+     * @param to       The ending slot index to register the event for.
+     * @param function The function to execute on a click event.
      */
     public void registerSlots(int from, int to, Consumer<InventoryClickEvent> function) {
         for (int i = from; i <= to; i++) {
@@ -343,9 +345,10 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     }
 
     /**
-     * Register slots with custom event handler.
-     * @param slots - Slots to register.
-     * @param function - Function that will be executed.
+     * Registers a click event handler for specific inventory slots.
+     *
+     * @param slots    An array of slots to register the event for.
+     * @param function The function to execute on a click event.
      */
     public void registerSlots(int[] slots, Consumer<InventoryClickEvent> function) {
         for (int slot : slots) {
@@ -354,9 +357,10 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     }
 
     /**
-     * Register the slot with custom event handler.
-     * @param slot - Slot that will be registered.
-     * @param function - Function that will be executed.
+     * Registers a click event handler for a specific inventory slot.
+     *
+     * @param slot     The slot index to register the event for.
+     * @param function The function to execute on a click event.
      */
     public void registerSlot(int slot, Consumer<InventoryClickEvent> function) {
         this.clickEvents.put(slot, function);
@@ -379,28 +383,24 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         registerSlot(slot, function);
     }
 
-    @Override
     public void registerSlots(int[] slots, ItemStack itemStack, Consumer<InventoryClickEvent> function) {
         for (int slot : slots) {
             registerSlot(slot, itemStack, function);
         }
     }
 
-    @Override
     public void registerSlots(int from, int to, ItemStack itemStack, Consumer<InventoryClickEvent> function) {
         for (int i = from; i <= to; i++) {
             registerSlot(i, itemStack, function);
         }
     }
 
-    @Override
     public void registerPlayerSlots(int[] slots, Consumer<InventoryClickEvent> function) {
         for (int slot : slots) {
             registerPlayerSlot(slot, function);
         }
     }
 
-    @Override
     public void registerPlayerSlots(int from, int to, Consumer<InventoryClickEvent> function) {
         for (int i = from; i <= to; i++) {
             registerPlayerSlot(i, function);
@@ -408,23 +408,27 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     }
 
     /**
-     * @return All registered slots.
+     * Retrieves all registered slots and their corresponding click event handlers.
+     *
+     * @return A map of registered slots with their associated click event handlers.
      */
     public Map<Integer, Consumer<InventoryClickEvent>> getRegisteredSlots() {
         return this.clickEvents;
     }
 
     /**
-     * Register a custom handler on inventory close.
-     * @param function - Function that will be called on InventoryCloseEvent.
+     * Registers a custom handler to be called upon inventory close events.
+     *
+     * @param function The function that will be executed on inventory close.
      */
     public void onInventoryClose(Consumer<InventoryCloseEvent> function) {
         this.closeListeners.add(function);
     }
 
     /**
-     * Unregister a slot custom handler from current list of registered slots.
-     * @param slot - Slot to be unregistered.
+     * Unregisters a slot's custom event handler from the list of registered slots.
+     *
+     * @param slot The slot number to unregister.
      */
     public void unregisterSlot(int slot) {
         this.clickEvents.remove(slot);
@@ -441,9 +445,10 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     }
 
     /**
-     * Unregister a slot custom handler from current list of registered slots
-     * @param slot - Slot to be unregistered.
-     * @param itemStack - ItemStack that will be set at the provided slot index.
+     * Unregisters a slot's custom event handler and sets the specified ItemStack to the slot.
+     *
+     * @param slot      The slot number to unregister.
+     * @param itemStack The ItemStack to set at the slot.
      */
     public void unregisterSlot(int slot, ItemStack itemStack) {
         unregisterSlot(slot);
@@ -451,8 +456,9 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     }
 
     /**
-     * Open an instance of BossInventory to a player (The only proper way to open)
-     * @param player - Player that the inventory will be opened for.
+     * Opens the current BaseInventory instance to the specified player.
+     *
+     * @param player Varargs array of players to open the inventory for.
      */
     public void open(HumanEntity... player) {
         for (Runnable refreshListener : this.refreshListeners) {
@@ -476,11 +482,17 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
     }
 
     public void close() {
-        this.viewers.stream().map(Bukkit::getPlayer).filter(Objects::nonNull).forEach(Player::closeInventory);
+        this.viewers.stream()
+                .map(Bukkit::getPlayer)
+                .filter(Objects::nonNull)
+                .forEach(Player::closeInventory);
     }
 
     public void updateInventory() {
-        this.viewers.stream().map(Bukkit::getPlayer).filter(Objects::nonNull).forEach(Player::updateInventory);
+        this.viewers.stream()
+                .map(Bukkit::getPlayer)
+                .filter(Objects::nonNull)
+                .forEach(Player::updateInventory);
     }
 
     public void refresh(Runnable runnable) {
@@ -491,28 +503,20 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         return 36;
     }
 
-    public Inventory getInventory() {
+    public @NotNull Inventory getInventory() {
         return this.inv;
     }
 
-    public Set<UUID> getViewers() {
-        return this.viewers;
-    }
-
     public List<Player> getPlayerViewers() {
-        return this.viewers.stream().map(Bukkit::getOfflinePlayer).filter(OfflinePlayer::isOnline).map(OfflinePlayer::getPlayer).toList();
+        return this.viewers.stream()
+                .map(Bukkit::getOfflinePlayer)
+                .filter(OfflinePlayer::isOnline)
+                .map(OfflinePlayer::getPlayer)
+                .toList();
     }
 
     public Map<Integer, Consumer<InventoryClickEvent>> getClickSlotEvents() {
         return this.clickEvents;
-    }
-
-    public List<Integer> getBlankSlots() {
-        return this.blankSlots;
-    }
-
-    public Map<UUID, Long> getDelayMap() {
-        return this.delayMap;
     }
 
     /**
@@ -534,6 +538,9 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
                 .anyMatch(openedInventory -> !isInInventory(player) && openedInventory.isInInventory(player));
     }
 
+    /**
+     * Destroys the current inventory instance, unregistering listeners and closing the inventory for all viewers.
+     */
     public void destroy() {
         this.close();
         this.unregisterListener();
@@ -544,10 +551,9 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
         this.registry.removeLiveInventory(BaseInventory.this);
     }
 
-    public Plugin getPlugin() {
-        return this.plugin;
-    }
-
+    /**
+     * InventoryListener is a nested class that handles various inventory-related events.
+     */
     public class InventoryListener implements Listener {
 
         @EventHandler
@@ -581,13 +587,14 @@ public abstract class BaseInventory implements IBaseInventory, InventoryHolder {
 
     }
 
-    public enum Slots {
-
+    /**
+     * CancellationPolicy defines the various cancellation behaviors for inventory events.
+     */
+    public enum CancellationPolicy {
         ALL,
         REGISTERED,
         UNREGISTERED,
         NONE
-
     }
 
 }

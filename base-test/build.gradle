@@ -12,9 +12,17 @@ repositories {
 dependencies {
     implementation project(path: ':base-commands')
     implementation project(path: ':base-inventories')
+    implementation project(path: ':base-plugin')
 
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.filter { it.exists() }.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 test {

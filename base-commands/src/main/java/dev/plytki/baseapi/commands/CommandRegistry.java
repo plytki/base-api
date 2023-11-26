@@ -6,8 +6,9 @@ import lombok.Data;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.SimpleCommandMap;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -19,12 +20,23 @@ import java.util.logging.Level;
 @Data
 public class CommandRegistry {
 
-    private final Plugin plugin;
+    private final JavaPlugin plugin;
     private final Set<BaseCommand> registeredCommands;
+    private final Map<String, TabCompleter> tabCompleters;
 
-    public CommandRegistry(Plugin plugin) {
+    public CommandRegistry(JavaPlugin plugin) {
         this.plugin = plugin;
         this.registeredCommands = new HashSet<>();
+        this.tabCompleters = new HashMap<>();
+    }
+
+    public void register(BaseCommand baseCommand, TabCompleter tabCompleter) throws FailedCommandRegistrationException {
+        register(baseCommand);
+
+        if (tabCompleter != null) {
+            tabCompleters.put(baseCommand.getName(), tabCompleter);
+            plugin.getCommand(baseCommand.getName()).setTabCompleter(tabCompleter);
+        }
     }
 
     public void register(BaseCommand baseCommand) throws FailedCommandRegistrationException {
@@ -46,6 +58,13 @@ public class CommandRegistry {
         commandMap.register(plugin.getDescription().getName(), baseCommand);
         registeredCommands.add(baseCommand);
         plugin.getLogger().log(Level.INFO, "Successfully registered '" + baseCommand.getName() + "' command!");
+    }
+
+    public void registerAll(Map<BaseCommand, TabCompleter> commandsWithCompleters) throws FailedCommandRegistrationException {
+        for (Map.Entry<BaseCommand, TabCompleter> entry : commandsWithCompleters.entrySet()) {
+            register(entry.getKey(), entry.getValue());
+        }
+        plugin.getLogger().log(Level.INFO, "Successfully registered all commands and tab completers!");
     }
 
     public void registerAll(BaseCommand... baseCommands) throws FailedCommandRegistrationException {
@@ -81,6 +100,7 @@ public class CommandRegistry {
         unregisterOldCommands(baseCommand, commandMap, knownCommands);
 
         registeredCommands.remove(baseCommand);
+        tabCompleters.remove(baseCommand.getName());
         if (message)
             plugin.getLogger().log(Level.INFO, "Successfully unregistered '" + baseCommand.getName() + "' command!");
     }

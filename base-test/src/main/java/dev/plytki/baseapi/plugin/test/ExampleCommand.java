@@ -1,6 +1,7 @@
 package dev.plytki.baseapi.plugin.test;
 
 import dev.plytki.baseapi.commands.command.*;
+import dev.plytki.baseapi.plugin.TestPlugin;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -57,6 +58,8 @@ public class ExampleCommand extends BaseCommand {
                 sender.sendMessage(String.format("Player %s is offline!", params.getString(0)));
             } else {
                 sender.sendMessage(String.format("Player %s is online!", player.getName()));
+                TestInventory testInventory = new TestInventory(TestPlugin.plugin().getInventoryRegistry());
+                testInventory.open(player);
             }
             sender.sendMessage("Sub-command executed by: " + sender.getName());
         }

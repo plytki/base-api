@@ -10,7 +10,7 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import java.io.*;
 import java.util.logging.Level;
 
-public class ItemSerializer {
+public class Base64Serializer {
 
     public static String toBase64(Inventory inventory) {
         return encodeObject(stream -> {

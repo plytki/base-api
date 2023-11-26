@@ -2,16 +2,13 @@ package dev.plytki.baseapi.commands.command;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.command.RemoteConsoleCommandSender;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public abstract class BaseCommand extends Command implements Executable {
+public abstract class BaseCommand extends Command implements Executable, TabCompleter {
 
     private static final String DEFAULT_NOT_AVAILABLE = "§cCommand is not available for %s!";
     private static final String DEFAULT_DISABLED_MESSAGE = "§cCommand is currently disabled!";
@@ -23,6 +20,7 @@ public abstract class BaseCommand extends Command implements Executable {
     private boolean disabled;
     private boolean requiredOp;
 
+    private TabCompleter tabCompleter;
     @Getter
     private final Map<String, BaseSubCommand> subCommandsMap = new HashMap<>();
     @Getter
@@ -87,6 +85,15 @@ public abstract class BaseCommand extends Command implements Executable {
         this.subCommandsMap.put(baseSubCommand.getName().toLowerCase(), baseSubCommand);
     }
 
+    /**
+     * Sets the tab completer for this command.
+     *
+     * @param tabCompleter The tab completer to set.
+     */
+    public void setTabCompleter(TabCompleter tabCompleter) {
+        this.tabCompleter = tabCompleter;
+    }
+
     private boolean isAllowedSender(CommandSender sender) {
         if (sender instanceof Player) {
             return canPlayerExecute();
@@ -111,6 +118,11 @@ public abstract class BaseCommand extends Command implements Executable {
 
     private boolean hasRequiredPermission(CommandSender sender) {
         return sender.hasPermission(this.permission);
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
+        return tabCompleter != null ? tabCompleter.onTabComplete(sender, this, alias, args) : super.tabComplete(sender, alias, args);
     }
 
     @Override
