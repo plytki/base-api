@@ -31,10 +31,6 @@ Creating a custom inventory involves extending the `BaseInventory` class and imp
 public class MyInventory extends BaseInventory {
     public MyInventory(/* Your params */) {
         // Initialize BaseInventory with proper parameters
-    }
-    
-    @Override
-    public void setup() {
         // Define how your inventory should be set up
     }
     
@@ -58,7 +54,7 @@ Base-API is built on top of the [Spigot API](https://www.spigotmc.org/), so you'
 <dependency>
     <groupId>org.spigotmc</groupId>
     <artifactId>spigot-api</artifactId>
-    <version>1.16.5-R0.1-SNAPSHOT</version>
+    <version>VERSION</version>
     <scope>provided</scope>
 </dependency>
 ```
