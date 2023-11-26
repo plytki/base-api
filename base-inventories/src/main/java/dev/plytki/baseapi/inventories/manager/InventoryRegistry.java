@@ -1,6 +1,6 @@
 package dev.plytki.baseapi.inventories.manager;
 
-import dev.plytki.baseapi.inventories.model.BaseInventory;
+import dev.plytki.baseapi.inventories.model.inventory.BaseInventory;
 import lombok.Data;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;

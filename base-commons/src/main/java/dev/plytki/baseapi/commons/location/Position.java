@@ -62,7 +62,8 @@ public class Position {
 
     public static Position fromJSON(String json) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        JsonElement parse = JsonParser.parseString(json);
+
+        JsonElement parse = new JsonParser().parse(json);
         return gson.fromJson(parse, Position.class);
     }
 

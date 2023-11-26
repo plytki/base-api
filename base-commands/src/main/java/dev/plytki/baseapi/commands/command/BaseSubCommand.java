@@ -31,7 +31,7 @@ public abstract class BaseSubCommand implements Executable {
         this.name = name;
         this.permission = permission;
         this.allowedSenders.clear();
-        this.allowedSenders.addAll(List.of(annotation.allowed()));
+        this.allowedSenders.addAll(Arrays.asList(annotation.allowed()));
     }
 
     public void disabled(boolean disabled) {

@@ -42,7 +42,7 @@ public class WorldPosition extends Position {
 
     public static WorldPosition fromJSON(String json) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        JsonElement parse = JsonParser.parseString(json);
+        JsonElement parse = new JsonParser().parse(json);
         return gson.fromJson(parse, WorldPosition.class);
     }
 

@@ -135,7 +135,7 @@ public class ExecutionParameters {
     }
 
     public List<String> getRawArgsList() {
-        return List.copyOf(Arrays.asList(args));
+        return new ArrayList<>(Arrays.asList(args));
     }
 
 }

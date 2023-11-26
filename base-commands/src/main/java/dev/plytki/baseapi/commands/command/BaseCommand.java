@@ -192,7 +192,7 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
 
             this.permission = permission;
             this.allowedSenders.clear();
-            this.allowedSenders.addAll(List.of(annotation.allowed()));
+            this.allowedSenders.addAll(Arrays.asList(annotation.allowed()));
         }
     }
 

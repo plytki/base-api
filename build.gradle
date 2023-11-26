@@ -1,9 +1,31 @@
 plugins {
     id 'java'
+    id 'maven-publish'
 }
 
 group = 'dev.plytki'
 version = '2.0.0-SNAPSHOT'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = group
+            artifactId = 'base-api'
+            version = version
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/plytki/base-api"
+            credentials {
+                username = System.getenv("USERNAME")
+                password = System.getenv("TOKEN")
+            }
+        }
+    }
+}
 
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -22,6 +44,7 @@ processResources {
 subprojects {
 
     apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
     repositories {
         mavenCentral()

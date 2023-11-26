@@ -1,4 +1,4 @@
-package dev.plytki.baseapi.inventories.model;
+package dev.plytki.baseapi.inventories.model.inventory;
 
 import dev.plytki.baseapi.inventories.manager.InventoryRegistry;
 import dev.plytki.baseapi.inventories.util.ItemBuilder;

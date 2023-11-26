@@ -4,4 +4,3 @@ include 'base-inventories'
 include 'base-commands'
 include 'base-plugin'
 include 'base-test'
-
