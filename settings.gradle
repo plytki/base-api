@@ -1,4 +1,4 @@
-rootProject.name = 'base-api-v2'
+rootProject.name = 'base-api'
 include 'base-commons'
 include 'base-inventories'
 include 'base-commands'

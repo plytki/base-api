@@ -5,6 +5,13 @@ plugins {
 group = 'dev.plytki'
 version = '2.0.0-SNAPSHOT'
 
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.filter { it.exists() }.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
 processResources {
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {

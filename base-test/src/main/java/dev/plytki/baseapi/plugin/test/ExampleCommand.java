@@ -21,18 +21,17 @@ public class ExampleCommand extends BaseCommand {
 
     @Override
     public void printHelp(CommandSender sender) {
-        System.out.println("printed help");
+        TestPlugin.plugin().logInfo("printed help");
     }
 
     @Override
     public void execute(ExecutionParameters params) {
         if (params.isEmpty()) {
-            System.out.println("print help");
+            TestPlugin.plugin().logInfo("print help");
         } else {
-            System.out.println("handle subcommands");
+            TestPlugin.plugin().logInfo("handle non-registered subcommands");
         }
     }
-
 
     @SubCommandInfo(
             name = "example",
@@ -47,7 +46,7 @@ public class ExampleCommand extends BaseCommand {
 
         @Override
         public void printHelp(CommandSender sender) {
-            System.out.println("printed help for subcommand");
+            TestPlugin.plugin().logInfo("printed help for subcommand");
         }
 
         @Override
