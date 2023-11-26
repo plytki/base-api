@@ -1,0 +1,7 @@
+rootProject.name = 'base-api-v2'
+include 'base-commons'
+include 'base-inventories'
+include 'base-commands'
+include 'base-plugin'
+include 'base-test'
+
