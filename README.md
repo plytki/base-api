@@ -1,4 +1,5 @@
 # Base-API for Minecraft Plugins
+![Build](https://github.com/plytki/base-api/actions/workflows/gradle.yml/badge.svg)
 
 Base-API is a utility library for Minecraft server plugins that simplifies common tasks such as registering/unregistering commands dynamically and creating inventories with listeners. This library is designed to help developers quickly implement features without having to write repetitive boilerplate code, allowing them to focus on creating unique gameplay experiences.
 
