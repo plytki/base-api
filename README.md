@@ -71,4 +71,4 @@ If you'd like to contribute to the base-api project, feel free to fork the repos
 
 ## License
 
-Base-API is released under the [MIT License](LICENSE).
+Base-API is released under the [GPLv3 License](LICENSE).
