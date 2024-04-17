@@ -55,7 +55,7 @@ public class Position {
                 '}';
     }
 
-    public String toJSON() {
+    public String toJson() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         return gson.toJson(this);
     }
@@ -63,7 +63,7 @@ public class Position {
     public static Position fromJSON(String json) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        JsonElement parse = new JsonParser().parse(json);
+        JsonElement parse = JsonParser.parseString(json);
         return gson.fromJson(parse, Position.class);
     }
 

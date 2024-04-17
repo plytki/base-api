@@ -52,7 +52,6 @@ public class SkullBuilder {
         if (skull.getType() != Material.PLAYER_HEAD || !(skull.hasItemMeta())) {
             throw new IllegalArgumentException("The provided ItemStack is not a Player Skull.");
         }
-
         SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
         PlayerTextures textures = skullMeta.getPlayerProfile().getTextures();
         return textures.getSkin() != null ? textures.getSkin().toString() : "";

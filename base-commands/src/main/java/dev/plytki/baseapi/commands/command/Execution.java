@@ -3,17 +3,18 @@ package dev.plytki.baseapi.commands.command;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-public class ExecutionParameters {
+public class Execution {
 
     private final String[] args;
     private final CommandSender sender;
 
-    public ExecutionParameters(String[] args, CommandSender sender) {
+    public Execution(String[] args, CommandSender sender) {
         this.args = Objects.requireNonNull(args, "args must not be null");
         this.sender = Objects.requireNonNull(sender, "sender must not be null");
     }
@@ -128,6 +129,14 @@ public class ExecutionParameters {
 
     public CommandSender getSender() {
         return sender;
+    }
+
+    public Player getSenderPlayer() {
+        return (Player) sender;
+    }
+
+    public ConsoleCommandSender getSenderConsole() {
+        return (ConsoleCommandSender) sender;
     }
 
     public int length() {

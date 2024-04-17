@@ -10,7 +10,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId = group
-            artifactId = 'base-inventories'
+            artifactId = 'base-redis'
             version = version
             from components.java
         }
@@ -29,4 +29,10 @@ publishing {
 
 repositories {
     mavenCentral()
+}
+
+dependencies {
+    implementation 'org.redisson:redisson:3.25.2'
+    implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.3'
+    implementation 'com.google.code.gson:gson:2.10.1'
 }

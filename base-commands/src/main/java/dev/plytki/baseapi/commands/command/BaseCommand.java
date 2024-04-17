@@ -19,7 +19,9 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
     private final Set<Sender> allowedSenders = EnumSet.noneOf(Sender.class);
     private boolean disabled;
     private boolean requiredOp;
+    private CommandType commandType;
 
+    @Setter
     private TabCompleter tabCompleter;
     @Getter
     private final Map<String, BaseSubCommand> subCommandsMap = new HashMap<>();
@@ -36,6 +38,7 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
 
     public BaseCommand() {
         super("defaultName");
+        this.commandType = CommandType.DEFAULT;
         initializeCommandFromAnnotation();
         setupMessages();
     }
@@ -46,6 +49,10 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
         this.notForRCONMessage = String.format(DEFAULT_NOT_AVAILABLE, "RCON");
         this.disabledMessage = DEFAULT_DISABLED_MESSAGE;
         this.insufficientPermissionsMessage = DEFAULT_PERMISSION_MESSAGE;
+    }
+
+    public void commandType(CommandType commandType) {
+        this.commandType = commandType;
     }
 
     public void disabled(boolean disabled) {
@@ -60,16 +67,14 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
         this.allowedSenders.addAll(Arrays.asList(senders));
     }
 
+    protected void allowOnly(Sender... senders) {
+        this.allowedSenders.clear();
+        this.allowedSenders.addAll(Arrays.asList(senders));
+    }
+
     protected void disallow(Sender... senders) {
         Arrays.asList(senders).forEach(this.allowedSenders::remove);
     }
-
-    protected void allowPlayer() { this.allowedSenders.add(Sender.PLAYER); }
-    protected void disallowPlayer() { this.allowedSenders.remove(Sender.PLAYER); }
-    protected void allowConsole() { this.allowedSenders.add(Sender.CONSOLE); }
-    protected void disallowConsole() { this.allowedSenders.remove(Sender.CONSOLE); }
-    protected void allowRemoteConsole() { this.allowedSenders.add(Sender.REMOTE_CONSOLE); }
-    protected void disallowRemoteConsole() { this.allowedSenders.remove(Sender.REMOTE_CONSOLE); }
 
     private boolean canPlayerExecute() { return this.allowedSenders.contains(Sender.PLAYER); }
     private boolean canConsoleExecute() { return this.allowedSenders.contains(Sender.CONSOLE); }
@@ -83,15 +88,16 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
 
     protected void registerSubCommand(BaseSubCommand baseSubCommand) {
         this.subCommandsMap.put(baseSubCommand.getName().toLowerCase(), baseSubCommand);
+        for (String alias : baseSubCommand.getAliases()) {
+            this.subCommandsMap.put(alias.toLowerCase(), baseSubCommand);
+        }
     }
 
-    /**
-     * Sets the tab completer for this command.
-     *
-     * @param tabCompleter The tab completer to set.
-     */
-    public void setTabCompleter(TabCompleter tabCompleter) {
-        this.tabCompleter = tabCompleter;
+    @Override
+    public void printHelp(CommandSender sender) {
+        sender.sendMessage("§7You are using SubCommand type command.");
+        sender.sendMessage("§7This is a default message.");
+        sender.sendMessage("§7You can modify it by overriding `BaseCommand#printHelp` method");
     }
 
     private boolean isAllowedSender(CommandSender sender) {
@@ -116,7 +122,9 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
         return null;
     }
 
-    private boolean hasRequiredPermission(CommandSender sender) {
+    private boolean hasPermission(CommandSender sender) {
+        if (this.permission.trim().isEmpty())
+            return true;
         return sender.hasPermission(this.permission);
     }
 
@@ -140,38 +148,45 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
             return false;
         }
 
-        if (this.requiredOp && !sender.isOp() || !hasRequiredPermission(sender)) {
+        boolean dontHaveRequiredOP = this.requiredOp && !sender.isOp();
+        boolean dontHavePermission = !hasPermission(sender);
+        if (dontHaveRequiredOP || dontHavePermission) {
             sender.sendMessage(String.format(this.insufficientPermissionsMessage, permission));
             return false;
         }
+        switch (commandType) {
+            case DEFAULT -> {
+                this.execute(new Execution(args, sender));
+            }
+            case SUBCOMMAND -> {
+                String subCommandName = args.length > 0 ? args[0].toLowerCase() : "";
+                BaseSubCommand subCommand = subCommandsMap.get(subCommandName);
 
-        String subCommandName = args.length > 0 ? args[0].toLowerCase() : "";
-        BaseSubCommand subCommand = subCommandsMap.get(subCommandName);
-
-        if (subCommand != null) {
-            String[] subCommandArgs = Arrays.copyOfRange(args, 1, args.length);
-            if (!subCommand.isAllowedSender(sender)) {
-                String notAllowedMessage = getNotAllowedMessage(sender);
-                if (notAllowedMessage != null) {
-                    sender.sendMessage(notAllowedMessage);
+                if (subCommand != null) {
+                    String[] subCommandArgs = Arrays.copyOfRange(args, 1, args.length);
+                    if (!subCommand.isAllowedSender(sender)) {
+                        String notAllowedMessage = getNotAllowedMessage(sender);
+                        if (notAllowedMessage != null) {
+                            sender.sendMessage(notAllowedMessage);
+                        }
+                        return false;
+                    }
+                    if (subCommand.isDisabled()) {
+                        sender.sendMessage(this.disabledMessage);
+                        return false;
+                    }
+                    if (subCommand.isRequiredOp() && !sender.isOp() || !subCommand.hasRequiredPermission(sender)) {
+                        sender.sendMessage(String.format(this.insufficientPermissionsMessage, subCommand.getPermission()));
+                        return false;
+                    }
+                    subCommand.execute(new Execution(subCommandArgs, sender));
+                } else if (subCommandName.isEmpty()) {
+                    this.execute(new Execution(args, sender));
+                } else {
+                    printHelp(sender);
                 }
-                return false;
             }
-            if (subCommand.isDisabled()) {
-                sender.sendMessage(this.disabledMessage);
-                return false;
-            }
-            if (subCommand.isRequiredOp() && !sender.isOp() || !subCommand.hasRequiredPermission(sender)) {
-                sender.sendMessage(String.format(this.insufficientPermissionsMessage, subCommand.getPermission()));
-                return false;
-            }
-            subCommand.execute(new ExecutionParameters(subCommandArgs, sender));
-        } else if (subCommandName.isEmpty()) {
-            this.execute(new ExecutionParameters(args, sender));
-        } else {
-            printHelp(sender);
         }
-
         return true;
     }
 

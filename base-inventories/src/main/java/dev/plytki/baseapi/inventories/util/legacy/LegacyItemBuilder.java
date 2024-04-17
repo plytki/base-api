@@ -1,4 +1,4 @@
-package dev.plytki.baseapi.inventories.util;
+package dev.plytki.baseapi.inventories.util.legacy;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -15,59 +15,58 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-//TODO
-public class ItemBuilder {
+public class LegacyItemBuilder {
 
     private final ItemStack itemStack;
 
     /**
-     * Create a new ItemBuilder from scratch.
-     * @param material The material to create the ItemBuilder with.
+     * Create a new LegacyItemBuilder from scratch.
+     * @param material The material to create the LegacyItemBuilder with.
      */
-    public ItemBuilder(Material material){
+    public LegacyItemBuilder(Material material){
         this(material, 1);
     }
 
     /**
-     * Create a new ItemBuilder over an existing itemstack.
-     * @param itemStack The itemstack to create the ItemBuilder over.
+     * Create a new LegacyItemBuilder over an existing itemstack.
+     * @param itemStack The itemstack to create the LegacyItemBuilder over.
      */
-    public ItemBuilder(ItemStack itemStack){
+    public LegacyItemBuilder(ItemStack itemStack){
         this.itemStack = itemStack;
     }
 
     /**
-     * Create a new ItemBuilder from scratch.
+     * Create a new LegacyItemBuilder from scratch.
      * @param material The material of the item.
      * @param amount The amount of the item.
      */
-    public ItemBuilder(Material material, int amount){
+    public LegacyItemBuilder(Material material, int amount){
         this.itemStack = new ItemStack(material, amount);
     }
 
     /**
-     * Create a new ItemBuilder from scratch.
+     * Create a new LegacyItemBuilder from scratch.
      * @param material The material of the item.
      * @param amount The amount of the item.
      * @param durability The durability of the item.
      */
-    public ItemBuilder(Material material, int amount, byte durability){
+    public LegacyItemBuilder(Material material, int amount, byte durability){
         this.itemStack = new ItemStack(material, amount, durability);
     }
 
     /**
-     * Clone the ItemBuilder into a new one.
+     * Clone the LegacyItemBuilder into a new one.
      * @return The cloned instance.
      */
-    public ItemBuilder clone(){
-        return new ItemBuilder(itemStack.clone());
+    public LegacyItemBuilder clone(){
+        return new LegacyItemBuilder(itemStack.clone());
     }
 
     /**
      * Change the durability of the item.
      * @param dur The durability to set it to.
      */
-    public ItemBuilder setDurability(short dur){
+    public LegacyItemBuilder setDurability(short dur){
         itemStack.setDurability(dur);
         return this;
     }
@@ -81,7 +80,7 @@ public class ItemBuilder {
      * Set the displayname of the item.
      * @param name The name to change it to.
      */
-    public ItemBuilder setName(String name){
+    public LegacyItemBuilder setName(String name){
         ItemMeta im = itemStack.getItemMeta();
         im.setDisplayName(name);
         itemStack.setItemMeta(im);
@@ -96,7 +95,7 @@ public class ItemBuilder {
      * Set the amount of the item.
      * @param amount The amount.
      */
-    public ItemBuilder setAmount(int amount){
+    public LegacyItemBuilder setAmount(int amount){
         itemStack.setAmount(amount);
         return this;
     }
@@ -110,7 +109,7 @@ public class ItemBuilder {
      * @param ench The enchantment to add.
      * @param level The level to put the enchant on.
      */
-    public ItemBuilder addUnsafeEnchantment(Enchantment ench, int level){
+    public LegacyItemBuilder addUnsafeEnchantment(Enchantment ench, int level){
         itemStack.addUnsafeEnchantment(ench, level);
         return this;
     }
@@ -119,7 +118,7 @@ public class ItemBuilder {
      * Remove a certain enchant from the item.
      * @param ench The enchantment to remove
      */
-    public ItemBuilder removeEnchantment(Enchantment ench){
+    public LegacyItemBuilder removeEnchantment(Enchantment ench){
         itemStack.removeEnchantment(ench);
         return this;
     }
@@ -128,7 +127,7 @@ public class ItemBuilder {
      * Set the skull owner for the item. Works on skulls only.
      * @param owner The name of the skull's owner.
      */
-    public ItemBuilder setSkullOwner(String owner){
+    public LegacyItemBuilder setSkullOwner(String owner){
         try{
             SkullMeta im = (SkullMeta) itemStack.getItemMeta();
             im.setOwner(owner);
@@ -142,7 +141,7 @@ public class ItemBuilder {
      * @param ench The enchant to add
      * @param level The level
      */
-    public ItemBuilder addEnchant(Enchantment ench, int level){
+    public LegacyItemBuilder addEnchant(Enchantment ench, int level){
         ItemMeta im = itemStack.getItemMeta();
         im.addEnchant(ench, level, true);
         itemStack.setItemMeta(im);
@@ -153,7 +152,7 @@ public class ItemBuilder {
      * Add multiple enchants at once.
      * @param enchantments The enchants to add.
      */
-    public ItemBuilder addEnchantments(Map<Enchantment, Integer> enchantments){
+    public LegacyItemBuilder addEnchantments(Map<Enchantment, Integer> enchantments){
         itemStack.addEnchantments(enchantments);
         return this;
     }
@@ -161,7 +160,7 @@ public class ItemBuilder {
     /**
      * Sets infinity durability on the item by setting the durability to Short.MAX_VALUE.
      */
-    public ItemBuilder setInfinityDurability(){
+    public LegacyItemBuilder setInfinityDurability(){
         itemStack.setDurability(Short.MAX_VALUE);
         return this;
     }
@@ -170,7 +169,7 @@ public class ItemBuilder {
      * Re-sets the lore.
      * @param lore The lore to set it to.
      */
-    public ItemBuilder setLore(String... lore){
+    public LegacyItemBuilder setLore(String... lore){
         ItemMeta im = itemStack.getItemMeta();
         im.setLore(Arrays.asList(lore));
         itemStack.setItemMeta(im);
@@ -181,7 +180,7 @@ public class ItemBuilder {
      * Re-sets the lore.
      * @param lore The lore to set it to.
      */
-    public ItemBuilder setLore(List<String> lore) {
+    public LegacyItemBuilder setLore(List<String> lore) {
         ItemMeta im = itemStack.getItemMeta();
         im.setLore(lore);
         itemStack.setItemMeta(im);
@@ -191,7 +190,7 @@ public class ItemBuilder {
     /**
      * Remove a lore line.
      */
-    public ItemBuilder removeLoreLine(String line){
+    public LegacyItemBuilder removeLoreLine(String line){
         ItemMeta im = itemStack.getItemMeta();
         List<String> lore = new ArrayList<>(im.getLore());
         if(!lore.contains(line))return this;
@@ -205,7 +204,7 @@ public class ItemBuilder {
      * Remove a lore line.
      * @param index The index of the lore line to remove.
      */
-    public ItemBuilder removeLoreLine(int index){
+    public LegacyItemBuilder removeLoreLine(int index){
         ItemMeta im = itemStack.getItemMeta();
         List<String> lore = new ArrayList<>(im.getLore());
         if (index<0 || index > lore.size())
@@ -220,7 +219,7 @@ public class ItemBuilder {
      * Add a lore line.
      * @param line The lore line to add.
      */
-    public ItemBuilder addLoreLine(String line){
+    public LegacyItemBuilder addLoreLine(String line){
         ItemMeta im = itemStack.getItemMeta();
         List<String> lore = new ArrayList<>();
         if(im.hasLore())lore = new ArrayList<>(im.getLore());
@@ -235,7 +234,7 @@ public class ItemBuilder {
      * @param line The lore line to add.
      * @param pos The index of where to put it.
      */
-    public ItemBuilder addLoreLine(String line, int pos){
+    public LegacyItemBuilder addLoreLine(String line, int pos){
         ItemMeta im = itemStack.getItemMeta();
         List<String> lore = new ArrayList<>(im.getLore());
         lore.set(pos, line);
@@ -248,7 +247,7 @@ public class ItemBuilder {
      * Sets the armor color of a leather armor piece. Works only on leather armor pieces.
      * @param color The color to set it to.
      */
-    public ItemBuilder setLeatherArmorColor(Color color){
+    public LegacyItemBuilder setLeatherArmorColor(Color color){
         try {
             LeatherArmorMeta im = (LeatherArmorMeta) itemStack.getItemMeta();
             im.setColor(color);
@@ -258,22 +257,22 @@ public class ItemBuilder {
     }
 
     /**
-     * Retrieves the itemstack from the ItemBuilder.
-     * @return The itemstack created/modified by the ItemBuilder instance.
+     * Retrieves the itemstack from the LegacyItemBuilder.
+     * @return The itemstack created/modified by the LegacyItemBuilder instance.
      */
 
     public ItemStack toItemStack() {
         return itemStack;
     }
 
-    public ItemBuilder addItemFlag(ItemFlag itemFlag) {
+    public LegacyItemBuilder addItemFlag(ItemFlag itemFlag) {
         ItemMeta im = itemStack.getItemMeta();
         im.addItemFlags(itemFlag);
         itemStack.setItemMeta(im);
         return this;
     }
 
-    public ItemBuilder addItemFlags(ItemFlag... itemFlags) {
+    public LegacyItemBuilder addItemFlags(ItemFlag... itemFlags) {
         ItemMeta im = itemStack.getItemMeta();
         im.addItemFlags(itemFlags);
         itemStack.setItemMeta(im);

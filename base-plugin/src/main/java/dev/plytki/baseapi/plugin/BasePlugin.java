@@ -1,29 +1,99 @@
 package dev.plytki.baseapi.plugin;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import dev.plytki.baseapi.commands.CommandRegistry;
+import dev.plytki.baseapi.commands.command.BaseCommand;
+import dev.plytki.baseapi.commands.exception.FailedCommandRegistrationException;
 import dev.plytki.baseapi.inventories.manager.InventoryRegistry;
+import dev.plytki.baseapi.redis.RedisClient;
+import lombok.Getter;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.redisson.config.Config;
 
 import java.util.logging.Level;
 
-public class BasePlugin extends JavaPlugin {
+@Getter
+public abstract class BasePlugin extends JavaPlugin implements IBasePlugin {
 
+    private BasePlugin instance;
+    private Gson gson;
     private CommandRegistry commandRegistry;
     private InventoryRegistry inventoryRegistry;
+    private PluginUpdater pluginUpdater;
+    private RedisClient redisClient;
 
     @Override
-    public void onEnable() {
-        // Plugin startup logic
+    public final void onEnable() {
+        instance = this;
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        prepareGson(gsonBuilder);
+        gson = gsonBuilder.create();
+        commandRegistry = new CommandRegistry(this);
+        inventoryRegistry = new InventoryRegistry(this);
+
+        onPluginStart();
         getLogger().info(this.getName() + " has been enabled!");
     }
 
     @Override
-    public void onDisable() {
-        // Plugin shutdown logic
+    public final void onDisable() {
+        inventoryRegistry.destroyAllLiveInventories();
+        onPluginStop();
         getLogger().info(this.getName() + " has been disabled.");
+    }
+
+    @Override
+    public final void onLoad() {
+        onPluginLoad();
+    }
+
+    public void prepareGson(GsonBuilder gsonBuilder) {};
+
+    public abstract void onPluginStart();
+    public void onPluginStop() {}
+    public void onPluginLoad() {}
+
+    protected final void startRedisClient(Config config) {
+        if (redisClient != null) {
+            redisClient.getRedisson().shutdown();
+            redisClient = null;
+        }
+        redisClient = new RedisClient(config);
+    }
+
+    protected final void enablePluginUpdater() {
+        if (pluginUpdater != null) {
+            pluginUpdater.getTask().cancel();
+            pluginUpdater = null;
+        }
+        pluginUpdater = new PluginUpdater(this);
+    }
+
+    public void register(Listener listener) {
+        this.getServer().getPluginManager().registerEvents(listener, this);
+    }
+
+    @Override
+    public void register(BaseCommand command) {
+        try {
+            this.commandRegistry.register(command);
+        } catch (FailedCommandRegistrationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void registerWithTabCompleter(BaseCommand command) {
+        try {
+            this.commandRegistry.register(command, command);
+        } catch (FailedCommandRegistrationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -118,30 +188,6 @@ public class BasePlugin extends JavaPlugin {
      */
     public void logSevere(String message) {
         log(Level.SEVERE, message);
-    }
-
-    /**
-     * Gets the CommandRegistry instance.
-     *
-     * @return The instance of CommandRegistry associated with this plugin.
-     */
-    public CommandRegistry getCommandRegistry() {
-        if (commandRegistry == null) {
-            commandRegistry = new CommandRegistry(this);
-        }
-        return commandRegistry;
-    }
-
-    /**
-     * Gets the InventoryRegistry instance.
-     *
-     * @return The instance of InventoryRegistry associated with this plugin.
-     */
-    public InventoryRegistry getInventoryRegistry() {
-        if (inventoryRegistry == null) {
-            inventoryRegistry = new InventoryRegistry(this);
-        }
-        return inventoryRegistry;
     }
 
 }

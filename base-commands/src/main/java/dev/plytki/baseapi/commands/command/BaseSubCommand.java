@@ -17,6 +17,7 @@ public abstract class BaseSubCommand implements Executable {
     private final BaseCommand superCommand;
     private final String name;
     private final String permission;
+    private final Set<String> aliases;
     private final Set<Sender> allowedSenders = EnumSet.noneOf(Sender.class);
     private boolean disabled;
     private boolean requiredOp;
@@ -27,9 +28,11 @@ public abstract class BaseSubCommand implements Executable {
         SubCommandInfo annotation = this.getClass().getAnnotation(SubCommandInfo.class);
         String name = annotation.name();
         String permission = annotation.permission();
+        String[] alias = annotation.aliases();
 
         this.name = name;
         this.permission = permission;
+        this.aliases = Set.of(alias);
         this.allowedSenders.clear();
         this.allowedSenders.addAll(Arrays.asList(annotation.allowed()));
     }
@@ -43,6 +46,8 @@ public abstract class BaseSubCommand implements Executable {
     }
 
     protected boolean hasRequiredPermission(CommandSender sender) {
+        if (this.permission.trim().isEmpty())
+            return true;
         return sender.hasPermission(this.permission);
     }
 

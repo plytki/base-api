@@ -2,32 +2,38 @@ package dev.plytki.baseapi.plugin.test;
 
 import dev.plytki.baseapi.inventories.manager.InventoryRegistry;
 import dev.plytki.baseapi.inventories.model.inventory.BaseInventory;
+import dev.plytki.baseapi.inventories.model.inventory.CancelPolicy;
+import dev.plytki.baseapi.inventories.model.inventory.InventoryProperties;
 import dev.plytki.baseapi.inventories.util.ItemBuilder;
-import dev.plytki.baseapi.plugin.TestPlugin;
 import org.bukkit.Material;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TestInventory extends BaseInventory {
 
-
     public TestInventory(InventoryRegistry inventoryRegistry) {
-        super(inventoryRegistry, "Test Inventory", 6);
-        cancellationPolicy(CancellationPolicy.ALL);
+        super(inventoryRegistry);
+        create();
+        cancelPolicy(CancelPolicy.ALL);
 
-        registerTask(() -> {
+        refreshRate(10);
+
+        runTask(() -> {
             System.out.println("one time task");
             System.out.println("test 1");
         }, 10, 0);
 
-        registerTask(() -> {
+        runTask(() -> {
             System.out.println("repeating task");
             System.out.println("test 2");
-        }, 10, 0);
+        }, 10, 10);
+    }
 
+    @Override
+    protected void update() {
         animateBorder(Material.GREEN_WOOL, 2);
 
         registerSlot(1, new ItemBuilder(Material.GREEN_WOOL).toItemStack(), event -> {
@@ -36,6 +42,14 @@ public class TestInventory extends BaseInventory {
         setItem(9, 10, new ItemStack(Material.BOOK));
     }
 
+    @Override
+    protected InventoryProperties properties(InventoryProperties properties) {
+        return properties
+                .setName("Test Inventory")
+                .setLines(6)
+                .setCancelPolicy(CancelPolicy.ALL)
+                .setCancelPolicyPlayer(CancelPolicy.ALL);
+    }
 
     public void animateBorder(Material borderMaterial, long intervalTicks) {
         // Define the animation steps
@@ -78,7 +92,7 @@ public class TestInventory extends BaseInventory {
 
         // Create a repeating task to perform the animation steps
         int taskId = 605;
-        registerTask(taskId, new Runnable() {
+        runTask(taskId, new Runnable() {
             private int currentStep = 0;
             @Override
             public void run() {
@@ -88,7 +102,7 @@ public class TestInventory extends BaseInventory {
                     currentStep++;
                 } else {
                     // Animation is complete, cancel the task
-                    cancelTask(taskId);
+                    stopTask(taskId);
                 }
             }
         }, 0L, intervalTicks);
