@@ -4,8 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -22,18 +20,17 @@ public class BaseLocation extends Location {
         super(Bukkit.getWorld(world), x, y, z, yaw, pitch);
     }
 
-    public BaseLocation(@Nullable World world, double x, double y, double z) {
+    public BaseLocation(World world, double x, double y, double z) {
         super(world, x, y, z);
     }
 
-    public BaseLocation(@Nullable World world, double x, double y, double z, float yaw, float pitch) {
+    public BaseLocation(World world, double x, double y, double z, float yaw, float pitch) {
         super(world, x, y, z, yaw, pitch);
     }
 
     /**
      * @return A new location where X/Y/Z are on the Block location (integer value of X/Y/Z)
      */
-    @NotNull
     public Location toBlockLocation() {
         Location blockLoc = clone();
         blockLoc.setX(getBlockX());
@@ -45,7 +42,6 @@ public class BaseLocation extends Location {
     /**
      * @return A new location where X/Y/Z are the center of the block
      */
-    @NotNull
     public Location toCenterLocation() {
         Location centerLoc = clone();
         centerLoc.setX(getBlockX() + 0.5);
@@ -54,7 +50,6 @@ public class BaseLocation extends Location {
         return centerLoc;
     }
 
-    @NotNull
     public Collection<Entity> getNearbyEntities(double x, double y, double z) {
         World world = this.getWorld();
         if (world == null) {

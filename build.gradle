@@ -56,14 +56,9 @@ subprojects {
     dependencies {
         compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
         compileOnly 'com.mojang:authlib:1.5.25'
-        compileOnly 'org.jetbrains:annotations:24.0.1'
         compileOnly 'org.projectlombok:lombok:1.18.26'
 
         annotationProcessor "org.projectlombok:lombok:1.18.26"
-        annotationProcessor "org.jetbrains:annotations:23.1.0"
-
-        testImplementation platform('org.junit:junit-bom:5.9.1')
-        testImplementation 'org.junit.jupiter:junit-jupiter'
     }
 
     java {

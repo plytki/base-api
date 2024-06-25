@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -129,12 +128,12 @@ public abstract class BaseCommand extends Command implements Executable, TabComp
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         return tabCompleter != null ? tabCompleter.onTabComplete(sender, this, alias, args) : super.tabComplete(sender, alias, args);
     }
 
     @Override
-    public boolean execute(@NotNull CommandSender sender, @NotNull String label, String[] args) {
+    public boolean execute(CommandSender sender, String label, String[] args) {
         if (!isAllowedSender(sender)) {
             String notAllowedMessage = getNotAllowedMessage(sender);
             if (notAllowedMessage != null) {

@@ -9,14 +9,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 public interface IBaseInventory extends InventoryHolder {
 
-    @NotNull
     Inventory getInventory();
     void debug(Consumer<InventoryClickEvent> eventConsumer);
     void onInventoryClose(Consumer<InventoryCloseEvent> function);
