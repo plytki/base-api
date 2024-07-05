@@ -32,10 +32,8 @@ public class CommandRegistry {
 
     public void register(BaseCommand baseCommand, TabCompleter tabCompleter) throws FailedCommandRegistrationException {
         register(baseCommand);
-
         if (tabCompleter != null) {
             tabCompleters.put(baseCommand.getName(), tabCompleter);
-            plugin.getCommand(baseCommand.getName()).setTabCompleter(tabCompleter);
         }
     }
 
